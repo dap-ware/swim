@@ -63,7 +63,8 @@ Using git clone and building from source
    ```bash
    go build .
    ```
-   This will compile the Swim application and create an executable file in the current directory.
+   
+   - This will compile the Swim application and create an executable file in the current directory.
    
 <h1 align="center">
 Usage
