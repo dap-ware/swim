@@ -3,7 +3,7 @@ package models
 import "database/sql"
 
 // DomainInfo represents the relevant data we want to extract from the stream
-type DomainInfo struct {
+type CertUpdateInfo struct {
 	ID                  int64  `json:"-"` // not returned in JSON
 	Domain              string `json:"domain"`
 	IsApex              bool   `json:"is_apex"`

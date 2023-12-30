@@ -4,19 +4,23 @@ import (
 	"database/sql"
 	"encoding/json"
 	"log"
+	"math"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
 
+	swimConfig "github.com/dap-ware/swim/config"
 	swimDb "github.com/dap-ware/swim/database"
 	swimModels "github.com/dap-ware/swim/models"
 	"github.com/gin-gonic/gin"
 )
 
 type RateLimiter struct {
-	visits map[string]*visitData
-	mu     sync.Mutex
+	visits    map[string]*visitData
+	mu        sync.Mutex
+	resetTime time.Duration
+	limit     int
 }
 
 type visitData struct {
@@ -24,13 +28,15 @@ type visitData struct {
 	lastUpdate time.Time
 }
 
-func NewRateLimiter() *RateLimiter {
+func NewRateLimiter(limit int, resetTime time.Duration) *RateLimiter {
 	return &RateLimiter{
-		visits: make(map[string]*visitData),
+		visits:    make(map[string]*visitData),
+		limit:     limit,
+		resetTime: resetTime,
 	}
 }
 
-func (rl *RateLimiter) RateLimit(limit int, resetTime time.Duration) gin.HandlerFunc {
+func (rl *RateLimiter) RateLimit() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clientIP := c.ClientIP()
 
@@ -43,32 +49,35 @@ func (rl *RateLimiter) RateLimit(limit int, resetTime time.Duration) gin.Handler
 			return
 		}
 
-		if time.Since(data.lastUpdate) > resetTime {
+		// calculate the allowed count using exponential backoff
+		allowedCount := int(math.Pow(2, float64(data.count-1)))
+
+		if time.Since(data.lastUpdate) > rl.resetTime {
 			data.count = 1
 			data.lastUpdate = time.Now()
+		} else if data.count > allowedCount {
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": "Rate limit exceeded"})
+			rl.mu.Unlock()
+			return
 		} else {
 			data.count++
-			if data.count > limit {
-				c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": "Rate limit exceeded"})
-				rl.mu.Unlock()
-				return
-			}
 		}
+
 		rl.mu.Unlock()
 		c.Next()
 	}
 }
 
 // StartServer starts the Gin server in a separate goroutine.
-func StartServer(db *sql.DB, wg *sync.WaitGroup) (*http.Server, chan struct{}) {
+func StartServer(db *sql.DB, wg *sync.WaitGroup, swimCfg *swimConfig.Config) (*http.Server, chan struct{}) {
 	// get new rate limiter
-	rateLimiter := NewRateLimiter()
+	rateLimiter := NewRateLimiter(swimCfg.Rate.Limit, swimCfg.Rate.ResetTime)
 
 	// create a new Gin server
 	r := gin.Default()
 
 	// sse the rate limiter middleware with a limit of 100 requests per hour
-	r.Use(rateLimiter.RateLimit(100, 1*time.Hour))
+	r.Use(rateLimiter.RateLimit())
 
 	server := &swimModels.Server{Db: db}
 
@@ -83,7 +92,7 @@ func StartServer(db *sql.DB, wg *sync.WaitGroup) (*http.Server, chan struct{}) {
 		GetDomainNamesHandler(server, c, page, size)
 	})
 
-	// handler for fetching certificate updates
+	// Handler for fetching certificate updates
 	r.GET("/v1/cert-updates", func(c *gin.Context) {
 		page, size, err := parseQueryParams(c)
 		if err != nil {
@@ -91,25 +100,13 @@ func StartServer(db *sql.DB, wg *sync.WaitGroup) (*http.Server, chan struct{}) {
 			return
 		}
 
-		domains, err := swimDb.FetchDomainData(server.Db, page, size)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch cert updates"})
-			return
-		}
-
-		c.JSON(http.StatusOK, domains)
+		GetCertUpdatesHandler(server, c, page, size)
 	})
 
-	// handler for fetching subdomains
+	// Handler for fetching subdomains
 	r.GET("/v1/subdomains/:domain", func(c *gin.Context) {
 		domain := c.Param("domain")
-		domainWithSubdomains, err := swimDb.FetchDomainWithSubdomains(server.Db, domain)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch subdomains"})
-			return
-		}
-
-		c.JSON(http.StatusOK, domainWithSubdomains)
+		GetSubdomainsHandler(server, c, domain)
 	})
 
 	srv := &http.Server{
@@ -130,7 +127,19 @@ func StartServer(db *sql.DB, wg *sync.WaitGroup) (*http.Server, chan struct{}) {
 	return srv, started
 }
 
-// GetDomainNamesHandler handles requests to fetch domain names.
+func StreamResponse[T any](c *gin.Context, dataChan chan []T, encodeFunc func(*json.Encoder, []T) error) {
+	c.Writer.Header().Set("Content-Type", "application/json")
+	c.Writer.WriteHeader(http.StatusOK)
+	encoder := json.NewEncoder(c.Writer)
+
+	for chunk := range dataChan {
+		if err := encodeFunc(encoder, chunk); err != nil {
+			log.Printf("Error encoding response: %v", err)
+			return
+		}
+	}
+}
+
 func GetDomainNamesHandler(s *swimModels.Server, c *gin.Context, page int, size int) {
 	domainNames := make(chan []string)
 	go func() {
@@ -140,15 +149,43 @@ func GetDomainNamesHandler(s *swimModels.Server, c *gin.Context, page int, size 
 		}
 	}()
 
-	c.Writer.Header().Set("Content-Type", "application/json")
-	c.Writer.WriteHeader(http.StatusOK)
-	encoder := json.NewEncoder(c.Writer)
-	for chunk := range domainNames {
-		if err := encoder.Encode(chunk); err != nil {
-			log.Printf("Error encoding domain names: %v", err)
+	StreamResponse(c, domainNames, func(enc *json.Encoder, chunk []string) error {
+		return enc.Encode(chunk)
+	})
+}
+
+func GetCertUpdatesHandler(s *swimModels.Server, c *gin.Context, page int, size int) {
+	certUpdatesChan := make(chan []swimModels.CertUpdateInfo)
+	go func() {
+		defer close(certUpdatesChan)
+		updates, err := swimDb.FetchCertUpdatesFromDatabase(s.Db, page, size)
+		if err != nil {
+			log.Printf("Error fetching certificate updates from database: %v", err)
 			return
 		}
-	}
+		certUpdatesChan <- updates
+	}()
+
+	StreamResponse(c, certUpdatesChan, func(enc *json.Encoder, chunk []swimModels.CertUpdateInfo) error {
+		return enc.Encode(chunk)
+	})
+}
+
+func GetSubdomainsHandler(s *swimModels.Server, c *gin.Context, domain string) {
+	subdomains := make(chan []swimModels.DomainWithSubdomains)
+	go func() {
+		defer close(subdomains)
+		subs, err := swimDb.FetchSubdomainsFromDatabase(s.Db, domain)
+		if err != nil {
+			log.Printf("Error fetching subdomains from database: %v", err)
+			return
+		}
+		subdomains <- []swimModels.DomainWithSubdomains{*subs}
+	}()
+
+	StreamResponse(c, subdomains, func(enc *json.Encoder, chunk []swimModels.DomainWithSubdomains) error {
+		return enc.Encode(chunk)
+	})
 }
 
 // parseQueryParams parses and validates query parameters.

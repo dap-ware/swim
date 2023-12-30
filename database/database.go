@@ -74,7 +74,7 @@ func SetupDatabase(db *sql.DB) error {
 }
 
 // dbInsertWorker is responsible for batch inserting domains into the database
-func DbInsertWorker(db *sql.DB, domains chan []swimModels.DomainInfo, wg *sync.WaitGroup) {
+func DbInsertWorker(db *sql.DB, domains chan []swimModels.CertUpdateInfo, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for batch := range domains {
@@ -110,7 +110,7 @@ func DbInsertWorker(db *sql.DB, domains chan []swimModels.DomainInfo, wg *sync.W
 	}
 }
 
-func insertBatch(tx *sql.Tx, batch []swimModels.DomainInfo) error {
+func insertBatch(tx *sql.Tx, batch []swimModels.CertUpdateInfo) error {
 	stmt, err := tx.Prepare(`INSERT OR IGNORE INTO domains (domain, not_before, not_after, serial_number, fingerprint, key_usage, extended_key_usage, subject_key_id, authority_key_id, authority_info, subject_alt_name, certificate_policies, wildcard, is_apex, parent_domain) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		return err
@@ -134,7 +134,7 @@ func insertBatch(tx *sql.Tx, batch []swimModels.DomainInfo) error {
 	return nil
 }
 
-func FetchDomainData(db *sql.DB, page, size int) ([]swimModels.DomainInfo, error) {
+func FetchCertUpdatesFromDatabase(db *sql.DB, page, size int) ([]swimModels.CertUpdateInfo, error) {
 	offset := (page - 1) * size
 	query := `SELECT id, domain, is_apex, parent_domain, not_before, not_after, serial_number, fingerprint, key_usage, extended_key_usage, subject_key_id, authority_key_id, authority_info, subject_alt_name, certificate_policies, wildcard FROM domains ORDER BY domain LIMIT ? OFFSET ?`
 
@@ -144,9 +144,9 @@ func FetchDomainData(db *sql.DB, page, size int) ([]swimModels.DomainInfo, error
 	}
 	defer rows.Close()
 
-	var domains []swimModels.DomainInfo
+	var domains []swimModels.CertUpdateInfo
 	for rows.Next() {
-		var domain swimModels.DomainInfo
+		var domain swimModels.CertUpdateInfo
 		if err := rows.Scan(
 			&domain.ID,
 			&domain.Domain,
@@ -181,7 +181,7 @@ func FetchDomainData(db *sql.DB, page, size int) ([]swimModels.DomainInfo, error
 	return domains, nil
 }
 
-func FetchDomainWithSubdomains(db *sql.DB, domain string) (*swimModels.DomainWithSubdomains, error) {
+func FetchSubdomainsFromDatabase(db *sql.DB, domain string) (*swimModels.DomainWithSubdomains, error) {
 	// query for the subdomains
 	rows, err := db.Query("SELECT domain FROM domains WHERE parent_domain = ?", domain)
 	if err != nil {

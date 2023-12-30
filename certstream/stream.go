@@ -57,10 +57,10 @@ func ListenForEvents(rawMessages chan []byte, stopProcessing chan struct{}, wg *
 }
 
 // messageProcessor processes raw messages and sends extracted domain info to the domains channel
-func MessageProcessor(rawMessages chan []byte, domains chan []swimModels.DomainInfo, stopProcessing chan struct{}, wg *sync.WaitGroup, batchSize int) {
+func MessageProcessor(rawMessages chan []byte, domains chan []swimModels.CertUpdateInfo, stopProcessing chan struct{}, wg *sync.WaitGroup, batchSize int) {
 	defer wg.Done()
 
-	var batch []swimModels.DomainInfo
+	var batch []swimModels.CertUpdateInfo
 	for message := range rawMessages {
 		var m map[string]interface{}
 		if err := json.Unmarshal(message, &m); err != nil {
@@ -82,7 +82,7 @@ func MessageProcessor(rawMessages chan []byte, domains chan []swimModels.DomainI
 								continue // skip adding wildcard domains as separate entries
 							}
 
-							var domainInfo swimModels.DomainInfo
+							var domainInfo swimModels.CertUpdateInfo
 							domainInfo.Domain = domain
 							domainInfo.NotBefore = int64(leafCert["not_before"].(float64))
 							domainInfo.NotAfter = int64(leafCert["not_after"].(float64))
@@ -127,7 +127,7 @@ func MessageProcessor(rawMessages chan []byte, domains chan []swimModels.DomainI
 		// send the batch if it reaches the specified size
 		if len(batch) >= batchSize {
 			domains <- batch
-			batch = make([]swimModels.DomainInfo, 0) // reset batch
+			batch = make([]swimModels.CertUpdateInfo, 0) // reset batch
 		}
 	}
 

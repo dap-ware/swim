@@ -167,3 +167,78 @@
 2023/12/30 15:03:11 Connected to CertStream. Listening for events...
 2023/12/30 15:03:24 Connected to CertStream. Listening for events...
 2023/12/30 15:04:23 Connected to CertStream. Listening for events...
+2023/12/30 15:28:56 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 15:40:39 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 15:40:44 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 15:40:50 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 15:44:09 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 15:44:09 Database query error: no such table: domains
+2023/12/30 15:44:09 Error fetching domain names from database: no such table: domains
+2023/12/30 15:44:11 Retry 2: Error inserting batch: no such table: domains
+2023/12/30 15:44:12 Database query error: no such table: domains
+2023/12/30 15:44:12 Error fetching domain names from database: no such table: domains
+2023/12/30 15:44:13 Retry 3: Error inserting batch: no such table: domains
+2023/12/30 15:44:14 Database query error: no such table: domains
+2023/12/30 15:44:14 Error fetching domain names from database: no such table: domains
+2023/12/30 15:44:15 Database query error: no such table: domains
+2023/12/30 15:44:15 Error fetching domain names from database: no such table: domains
+2023/12/30 15:44:15 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 15:44:17 Retry 2: Error inserting batch: no such table: domains
+2023/12/30 15:44:19 Retry 3: Error inserting batch: no such table: domains
+2023/12/30 15:47:07 Database query error: no such table: domains
+2023/12/30 15:47:07 Error fetching domain names from database: no such table: domains
+2023/12/30 15:47:07 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 15:47:09 Database query error: no such table: domains
+2023/12/30 15:47:09 Error fetching domain names from database: no such table: domains
+2023/12/30 15:47:09 Retry 2: Error inserting batch: no such table: domains
+2023/12/30 15:47:10 Database query error: no such table: domains
+2023/12/30 15:47:10 Error fetching domain names from database: no such table: domains
+2023/12/30 15:47:11 Retry 3: Error inserting batch: no such table: domains
+2023/12/30 15:47:11 Database query error: no such table: domains
+2023/12/30 15:47:11 Error fetching domain names from database: no such table: domains
+2023/12/30 15:58:47 Failed to load config: yaml: line 7: found character that cannot start any token
+2023/12/30 15:59:07 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 15:59:09 Database query error: no such table: domains
+2023/12/30 15:59:09 Error fetching domain names from database: no such table: domains
+2023/12/30 15:59:09 Retry 2: Error inserting batch: no such table: domains
+2023/12/30 15:59:09 Database query error: no such table: domains
+2023/12/30 15:59:09 Error fetching domain names from database: no such table: domains
+2023/12/30 15:59:09 Database query error: no such table: domains
+2023/12/30 15:59:09 Error fetching domain names from database: no such table: domains
+2023/12/30 15:59:10 Database query error: no such table: domains
+2023/12/30 15:59:10 Error fetching domain names from database: no such table: domains
+2023/12/30 15:59:10 Database query error: no such table: domains
+2023/12/30 15:59:10 Error fetching domain names from database: no such table: domains
+2023/12/30 15:59:11 Retry 3: Error inserting batch: no such table: domains
+2023/12/30 15:59:25 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 15:59:25 Database query error: no such table: domains
+2023/12/30 15:59:25 Error fetching domain names from database: no such table: domains
+2023/12/30 15:59:26 Database query error: no such table: domains
+2023/12/30 15:59:26 Error fetching domain names from database: no such table: domains
+2023/12/30 15:59:26 Database query error: no such table: domains
+2023/12/30 15:59:26 Error fetching domain names from database: no such table: domains
+2023/12/30 15:59:27 Retry 2: Error inserting batch: no such table: domains
+2023/12/30 16:12:10 Database query error: no such table: domains
+2023/12/30 16:12:10 Error fetching domain names from database: no such table: domains
+2023/12/30 16:12:10 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 16:12:11 Database query error: no such table: domains
+2023/12/30 16:12:11 Error fetching domain names from database: no such table: domains
+2023/12/30 16:12:12 Retry 2: Error inserting batch: no such table: domains
+2023/12/30 16:12:12 Database query error: no such table: domains
+2023/12/30 16:12:12 Error fetching domain names from database: no such table: domains
+2023/12/30 16:12:14 Retry 3: Error inserting batch: no such table: domains
+2023/12/30 16:12:16 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 16:12:18 Retry 2: Error inserting batch: no such table: domains
+2023/12/30 16:12:20 Retry 3: Error inserting batch: no such table: domains
+2023/12/30 16:12:22 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 16:13:10 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 16:13:16 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 16:13:21 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 16:13:28 Retry 1: Error inserting batch: no such table: domains
+2023/12/30 16:19:28 Error creating database file: open : no such file or directory
+2023/12/30 16:20:00 Error creating database file: open : no such file or directory
+2023/12/30 16:20:37 Error creating database file: open : no such file or directory
+2023/12/30 16:20:56 Error creating database file: open : no such file or directory
+2023/12/30 16:21:03 Error creating database file: open : no such file or directory
+2023/12/30 16:21:39 Error creating database file: open : no such file or directory
+2023/12/30 16:22:38 listen: listen tcp 127.0.0.1:8080: bind: address already in use

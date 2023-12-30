@@ -15,26 +15,20 @@ import (
 	"database/sql"
 
 	swimStream "github.com/dap-ware/swim/certstream"
+	swimConfig "github.com/dap-ware/swim/config"
 	swimDb "github.com/dap-ware/swim/database"
 	swimModels "github.com/dap-ware/swim/models"
 	swimServer "github.com/dap-ware/swim/server"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const (
-	defaultDatabase  = "swim.db"
-	defaultBatchSize = 1000
-)
-
 var (
-	database  = flag.String("db", defaultDatabase, "SQLite database file")
-	batchSize = flag.Int("bs", defaultBatchSize, "Batch size for processing")
-	help      = flag.Bool("h", false, "Display help")
+	help = flag.Bool("h", false, "Display help")
 )
 
 func main() {
 	// open a file for logging
-	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile("logs/log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
 	}
@@ -46,6 +40,14 @@ func main() {
 	// set the log output to the multi-writer
 	log.SetOutput(multi)
 
+	swimCfg, err := swimConfig.LoadConfig("config/config.yaml")
+	if err != nil {
+		log.Fatalf("Failed to load config: %s", err)
+	}
+
+	// Print the loaded configuration for debugging
+	fmt.Printf("Loaded configuration: %+v\n", swimCfg)
+
 	flag.Parse()
 
 	if *help {
@@ -56,17 +58,19 @@ func main() {
 		return
 	}
 
-	db, err := sql.Open("sqlite3", *database)
+	db, err := sql.Open("sqlite3", swimCfg.Database.FilePath)
 	if err != nil {
 		log.Fatalf("Error opening database: %v", err)
 	}
 	defer db.Close()
 
-	swimDb.SetupDatabase(db)
+	if swimDb.SetupDatabase(db); err != nil {
+		log.Fatal(err)
+	}
 
-	domains := make(chan []swimModels.DomainInfo, 100) // buffered channel for domain info
-	rawMessages := make(chan []byte, 100)              // buffered channel for raw messages
-	stopProcessing := make(chan struct{})              // channel to signal stopping of processing
+	domains := make(chan []swimModels.CertUpdateInfo, 100) // buffered channel for domain info
+	rawMessages := make(chan []byte, 100)                  // buffered channel for raw messages
+	stopProcessing := make(chan struct{})                  // channel to signal stopping of processing
 
 	var wg sync.WaitGroup
 
@@ -76,14 +80,14 @@ func main() {
 
 	// start the message processing worker
 	wg.Add(1)
-	go swimStream.MessageProcessor(rawMessages, domains, stopProcessing, &wg, *batchSize)
+	go swimStream.MessageProcessor(rawMessages, domains, stopProcessing, &wg, swimCfg.Database.BatchSize)
 
 	// goroutine for CertStream connection
 	wg.Add(1)
 	go swimStream.ListenForEvents(rawMessages, stopProcessing, &wg)
 
 	// server gets started in go routine in swimServer.StartServer
-	srv, started := swimServer.StartServer(db, &wg)
+	srv, started := swimServer.StartServer(db, &wg, swimCfg) // start the Gin server (with a rate limiter of 100 requests per hour. See config/config.yaml for the
 	// wait for the server to start
 	go func() {
 		<-started // send a message to the channel when the server is started

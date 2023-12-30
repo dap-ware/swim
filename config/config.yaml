@@ -1,0 +1,6 @@
+database:
+  filepath: "data/swim.db"
+  batchsize: 1000
+rate:
+  limit: 1000
+  resettime: 60
