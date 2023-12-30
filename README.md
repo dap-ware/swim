@@ -9,15 +9,18 @@
   <img src="resources/logo.png" alt="Swim Logo" width="400">
 </p>
 
-Swim is a Go application designed to interface with the CertStream service, processing incoming SSL/TLS certificate transparency logs and extracting domain data. This data is stored in a SQLite database for efficient access and analysis. 
+Swim is a Go application adeptly designed to interface with the Calidog CertStream service using websockets, offering real-time processing of SSL/TLS certificate transparency logs. This sophisticated interaction allows Swim to extract domain-related data from the logs with high efficiency. Once this data is processed, it's stored in a SQLite database, optimized for quick access and detailed analysis.
 
-Additionally, Swim offers a RESTful API, allowing users to query and retrieve processed domain information, including details about domain names, certificate update events, and subdomains. This makes Swim an invaluable tool for security analysts and researchers interested in real-time monitoring of certificate issuance and domain changes.
+A significant feature of Swim is its implementation of a RESTful API using Gin. This API enhances Swim's functionality by making the stored data easily queryable. Users can execute targeted queries and access a wealth of processed information, including comprehensive details on domain names, certificate event updates, and subdomain structures. This capability is crucial for security analysts and researchers who require immediate access to the latest data on certificate issuance and domain modifications.
+
+The integration of Gin, known for its high performance and efficient memory usage, ensures that the API is not only powerful but also responsive and scalable. This makes Swim an invaluable tool in the cybersecurity and IT landscapes, particularly for those needing to monitor and analyze web security trends in real time. The combination of real-time data processing from CertStream and the queryable, efficient API positions Swim as a cutting-edge solution for proactive cybersecurity monitoring and digital footprint analysis.
+
 
 ---
 
-<h2 align="center">
+<h1 align="center">
 <br>Installation
-</h2>
+</h1>
 <h3 align="center">
 Prerequisites
 </h3>
@@ -52,9 +55,9 @@ Alternatively, you can clone the repository and build Swim manually. This is a g
    ```
    This will compile the Swim application and create an executable file in the current directory.
    
-<h2 align="center">
+<h1 align="center">
 Usage
-</h2>
+</h1>
 Swim allows you to specify the SQLite database file and the batch size for processing using the `-db` and `-bs` flags, respectively. 
 
 - Default database file: `swim.db`
@@ -72,9 +75,9 @@ To display help information:
 ```bash
 ./swim -h
 ```
-<h2 align="center">
+<h1 align="center">
 API Reference
-</h2>
+</h1>
 <h3 align="center">
 Fetch Domain Names (Apex Domains)
 </h3>
