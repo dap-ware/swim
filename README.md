@@ -1,6 +1,8 @@
 
 <h1 align="center">
-Swim - CertStream Data Processor
+-- Swim --
+<br>Certificate Transparency Log
+<br>Analysis Framework
 </h1>
 
 <p align="center">
