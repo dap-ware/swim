@@ -14,7 +14,8 @@ What is swim?
 
 - Swim is a Go application adeptly designed to interface with the Calidog CertStream service using websockets, offering real-time processing of SSL/TLS certificate transparency logs. This sophisticated interaction allows Swim to extract domain-related data from the logs with high efficiency. Once this data is processed, it's stored in a SQLite database, optimized for quick access and detailed analysis.
 
-- A significant feature of Swim is its implementation of a RESTful API using the Gin web framework. This API enhances Swim's functionality by making the stored data easily queryable. Users can execute targeted queries and access a wealth of processed information, including comprehensive details on domain names, certificate event updates, and subdomain structures. This capability is crucial for security analysts and researchers who require immediate access to the latest data on certificate issuance and domain modifications.
+- A significant feature of Swim is its implementation of a RESTful API using the Gin web framework. This API enhances Swim's functionality by making the stored data easily queryable. Users can execute targeted queries and access a wealt
+ of processed information, including comprehensive details on domain names, certificate event updates, and subdomain structures. This capability is crucial for security analysts and researchers who require immediate access to the latest data on certificate issuance and domain modifications.
 
 - The integration of Gin, known for its high performance and efficient memory usage, ensures that the API is not only powerful but also responsive and scalable. This makes Swim an invaluable tool in the cybersecurity and IT landscapes, particularly for those needing to monitor and analyze web security trends in real time.
 <h3 align="center">
@@ -196,7 +197,7 @@ GET http://localhost:8080/v1/get/dynamic-m.com/subdomains
 ```
 
 #### **Example Response**
-- The response is streamed as JSON arrays, here is the example response from the above request:
+- The response is streamed as JSON, here is the example response from the above request:
 ```json
 {
   "domain": "dynamic-m.com",
