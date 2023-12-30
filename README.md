@@ -8,9 +8,9 @@
 <p align="center">
   <img src="resources/logo.png" alt="Swim Logo" width="400">
 </p>
-<h3 align="center">
+<h1 align="center">
 What is swim?
-</h3>
+</h1>
 
 - Swim is a Go application adeptly designed to interface with the Calidog CertStream service using websockets, offering real-time processing of SSL/TLS certificate transparency logs. This sophisticated interaction allows Swim to extract domain-related data from the logs with high efficiency. Once this data is processed, it's stored in a SQLite database, optimized for quick access and detailed analysis.
 
