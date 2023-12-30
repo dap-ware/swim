@@ -35,20 +35,22 @@ Using Go Install
 
  - If you have Go installed and configured (with `GOPATH` set up), you can directly install Swim using the `go install` command:
 
-```bash
-go install github.com/dap-ware/swim@latest
-```
+    ```bash
+    go install github.com/dap-ware/swim@latest
+    ```
 <h3 align="center">
 Using git clone and building from source
 </h3>
 Alternatively, you can clone the repository and build Swim manually. This is a good option if you want to work with the source code or contribute to the project:
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/dap-ware/swim.git
    cd swim
    ```
 2. Build the application using Go:
+
    ```bash
    go build .
    ```

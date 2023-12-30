@@ -82,11 +82,11 @@ func main() {
 	wg.Add(1)
 	go swimStream.ListenForEvents(rawMessages, stopProcessing, &wg)
 
-	// Server gets started in go routine in swimServer.StartServer
+	// server gets started in go routine in swimServer.StartServer
 	srv, started := swimServer.StartServer(db, &wg)
-	// Wait for the server to start
+	// wait for the server to start
 	go func() {
-		<-started // Wait for the server to start
+		<-started // send a message to the channel when the server is started
 	}()
 
 	// signal handling for graceful shutdown
