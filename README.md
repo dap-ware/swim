@@ -7,6 +7,13 @@ Swim - CertStream Data Processor
   <img src="resources/logo.png" alt="Swim Logo" width="400">
 </p>
 
+<p align="center">
+  <video width="320" height="480" controls>
+    <source src="resources/example_use.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</p>
+
 Swim is a Go application designed to interface with the CertStream service, processing incoming SSL/TLS certificate transparency logs and extracting domain data. This data is stored in a SQLite database for efficient access and analysis. 
 
 Additionally, Swim offers a RESTful API, allowing users to query and retrieve processed domain information, including details about domain names, certificate update events, and subdomains. This makes Swim an invaluable tool for security analysts and researchers interested in real-time monitoring of certificate issuance and domain changes.
@@ -16,7 +23,7 @@ Installation
 </h2>
 
 ### Prerequisites
-- Go (Version 1.x.x or higher)
+- Go installed on system
 
 ### Using Go Install
 If you have Go installed and configured (with `GOPATH` set up), you can directly install Swim using the `go install` command:
