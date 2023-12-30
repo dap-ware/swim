@@ -127,7 +127,7 @@ func MessageProcessor(rawMessages chan []byte, domains chan []swimModels.DomainI
 		// send the batch if it reaches the specified size
 		if len(batch) >= batchSize {
 			domains <- batch
-			batch = make([]swimModels.DomainInfo, 0) // Reset batch
+			batch = make([]swimModels.DomainInfo, 0) // reset batch
 		}
 	}
 
