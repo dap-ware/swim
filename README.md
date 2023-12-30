@@ -8,14 +8,20 @@
 <p align="center">
   <img src="resources/logo.png" alt="Swim Logo" width="400">
 </p>
+<h3 align="center">
+What is swim?
+</h3>
 
-Swim is a Go application adeptly designed to interface with the Calidog CertStream service using websockets, offering real-time processing of SSL/TLS certificate transparency logs. This sophisticated interaction allows Swim to extract domain-related data from the logs with high efficiency. Once this data is processed, it's stored in a SQLite database, optimized for quick access and detailed analysis.
+- Swim is a Go application adeptly designed to interface with the Calidog CertStream service using websockets, offering real-time processing of SSL/TLS certificate transparency logs. This sophisticated interaction allows Swim to extract domain-related data from the logs with high efficiency. Once this data is processed, it's stored in a SQLite database, optimized for quick access and detailed analysis.
 
-A significant feature of Swim is its implementation of a RESTful API using the Gin web framework. This API enhances Swim's functionality by making the stored data easily queryable. Users can execute targeted queries and access a wealth of processed information, including comprehensive details on domain names, certificate event updates, and subdomain structures. This capability is crucial for security analysts and researchers who require immediate access to the latest data on certificate issuance and domain modifications.
+- A significant feature of Swim is its implementation of a RESTful API using the Gin web framework. This API enhances Swim's functionality by making the stored data easily queryable. Users can execute targeted queries and access a wealth of processed information, including comprehensive details on domain names, certificate event updates, and subdomain structures. This capability is crucial for security analysts and researchers who require immediate access to the latest data on certificate issuance and domain modifications.
 
-The integration of Gin, known for its high performance and efficient memory usage, ensures that the API is not only powerful but also responsive and scalable. This makes Swim an invaluable tool in the cybersecurity and IT landscapes, particularly for those needing to monitor and analyze web security trends in real time.
+- The integration of Gin, known for its high performance and efficient memory usage, ensures that the API is not only powerful but also responsive and scalable. This makes Swim an invaluable tool in the cybersecurity and IT landscapes, particularly for those needing to monitor and analyze web security trends in real time.
+<h3 align="center">
+Under Active Development
+</h3>
 
-**Under Active Development**: Swim is currently under active development, with plans to expand its features significantly. Upcoming enhancements include the addition of a web-based user interface (UI) to provide a more interactive and user-friendly experience. This web UI will make data visualization and analysis more accessible, further aiding users in their security research and monitoring tasks. Keep an eye out for these exciting new developments in the near future as Swim continues to evolve into an even more robust tool for real-time web security analysis.
+- Swim is currently under active development, with plans to expand its features significantly. Upcoming enhancements include the addition of a web-based user interface (UI) to provide a more interactive and user-friendly experience. This web UI will make data visualization and analysis more accessible, further aiding users in their security research and monitoring tasks.
 
 
 
