@@ -7,32 +7,40 @@ Swim - CertStream Data Processor
   <img src="resources/logo.png" alt="Swim Logo" width="400">
 </p>
 
+Swim is a Go application designed to interface with the CertStream service, processing incoming SSL/TLS certificate transparency logs and extracting domain data. This data is stored in a SQLite database for efficient access and analysis. 
+
+Additionally, Swim offers a RESTful API, allowing users to query and retrieve processed domain information, including details about domain names, certificate update events, and subdomains. This makes Swim an invaluable tool for security analysts and researchers interested in real-time monitoring of certificate issuance and domain changes.
+
+---
 <p align="center">
-  <video width="320" height="480" controls>
+  <video width="640" height="480" controls>
     <source src="resources/example_use.mp4" type="video/mp4">
     Your browser does not support the video tag.
   </video>
 </p>
 
-Swim is a Go application designed to interface with the CertStream service, processing incoming SSL/TLS certificate transparency logs and extracting domain data. This data is stored in a SQLite database for efficient access and analysis. 
-
-Additionally, Swim offers a RESTful API, allowing users to query and retrieve processed domain information, including details about domain names, certificate update events, and subdomains. This makes Swim an invaluable tool for security analysts and researchers interested in real-time monitoring of certificate issuance and domain changes.
-
 <h2 align="center">
-Installation
+<br>Installation
 </h2>
+<h3 align="center">
+Prerequisites
+</h3>
 
-### Prerequisites
-- Go installed on system
+1. Go installed on system
+2. That's it...
 
-### Using Go Install
-If you have Go installed and configured (with `GOPATH` set up), you can directly install Swim using the `go install` command:
+<h3 align="center">
+Using Go Install
+</h3>
+
+ - If you have Go installed and configured (with `GOPATH` set up), you can directly install Swim using the `go install` command:
 
 ```bash
 go install github.com/dap-ware/swim@latest
 ```
-
-### Using git clone and building from source
+<h3 align="center">
+Using git clone and building from source
+</h3>
 Alternatively, you can clone the repository and build Swim manually. This is a good option if you want to work with the source code or contribute to the project:
 
 1. Clone the repository:
@@ -54,7 +62,10 @@ Swim allows you to specify the SQLite database file and the batch size for proce
 - Default database file: `swim.db`
 - Default batch size: `1000`
 
-### Running Swim
+<h3 align="center">
+Running Swim
+</h3>
+
 To run Swim with custom settings:
 ```bash
 ./swim -db your_database.db -bs 500
