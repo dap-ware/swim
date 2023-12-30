@@ -12,12 +12,6 @@ Swim is a Go application designed to interface with the CertStream service, proc
 Additionally, Swim offers a RESTful API, allowing users to query and retrieve processed domain information, including details about domain names, certificate update events, and subdomains. This makes Swim an invaluable tool for security analysts and researchers interested in real-time monitoring of certificate issuance and domain changes.
 
 ---
-<p align="center">
-  <video width="640" height="480" controls>
-    <source src="resources/example_use.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-</p>
 
 <h2 align="center">
 <br>Installation
