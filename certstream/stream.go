@@ -41,12 +41,12 @@ func ListenForEvents(rawMessages chan []byte, stopProcessing chan struct{}, wg *
 				time.Sleep(5 * time.Second)
 				continue
 			}
-			log.Println("Connected to CertStream. Listening for events...")
+			//log.Println("Connected to CertStream. Listening for events...")
 
 			for {
 				_, message, err := c.ReadMessage()
 				if err != nil {
-					log.Printf("Error reading message: %v. Reconnecting...", err)
+					//log.Printf("Error reading message: %v. Reconnecting...", err)
 					c.Close()
 					break
 				}

@@ -7,54 +7,108 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	swimDb "github.com/dap-ware/swim/database"
 	swimModels "github.com/dap-ware/swim/models"
 	"github.com/gin-gonic/gin"
 )
 
-// StartServer starts the Gin server in a separate goroutine.
-func StartServer(db *sql.DB, wg *sync.WaitGroup) (*http.Server, chan struct{}) {
-	// setup Gin server in a separate goroutine
-	r := gin.Default()
-	server := &swimModels.Server{Db: db}
-	r.GET("/v1/domains", func(c *gin.Context) { GetDomainNamesHandler(server, c) })
+type RateLimiter struct {
+	visits map[string]*visitData
+	mu     sync.Mutex
+}
 
-	// define the handler functions
-	r.GET("/v1/get/domains", func(c *gin.Context) {
-		// get the page number and size from the query parameters
-		page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-		size, _ := strconv.Atoi(c.DefaultQuery("size", "1000"))
+type visitData struct {
+	count      int
+	lastUpdate time.Time
+}
 
-		// fetch the domains from the database
-		domains, err := swimDb.FetchDomainData(server.Db, page, size)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "An error occurred",
-				"error":   err.Error(),
-			})
+func NewRateLimiter() *RateLimiter {
+	return &RateLimiter{
+		visits: make(map[string]*visitData),
+	}
+}
+
+func (rl *RateLimiter) RateLimit(limit int, resetTime time.Duration) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clientIP := c.ClientIP()
+
+		rl.mu.Lock()
+		data, visited := rl.visits[clientIP]
+		if !visited {
+			rl.visits[clientIP] = &visitData{count: 1, lastUpdate: time.Now()}
+			rl.mu.Unlock()
+			c.Next()
 			return
 		}
 
-		// send the domains as the response
+		if time.Since(data.lastUpdate) > resetTime {
+			data.count = 1
+			data.lastUpdate = time.Now()
+		} else {
+			data.count++
+			if data.count > limit {
+				c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": "Rate limit exceeded"})
+				rl.mu.Unlock()
+				return
+			}
+		}
+		rl.mu.Unlock()
+		c.Next()
+	}
+}
+
+// StartServer starts the Gin server in a separate goroutine.
+func StartServer(db *sql.DB, wg *sync.WaitGroup) (*http.Server, chan struct{}) {
+	// get new rate limiter
+	rateLimiter := NewRateLimiter()
+
+	// create a new Gin server
+	r := gin.Default()
+
+	// sse the rate limiter middleware with a limit of 100 requests per hour
+	r.Use(rateLimiter.RateLimit(100, 1*time.Hour))
+
+	server := &swimModels.Server{Db: db}
+
+	// handler for fetching all domain names
+	r.GET("/v1/domains", func(c *gin.Context) {
+		page, size, err := parseQueryParams(c)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		GetDomainNamesHandler(server, c, page, size)
+	})
+
+	// handler for fetching certificate updates
+	r.GET("/v1/cert-updates", func(c *gin.Context) {
+		page, size, err := parseQueryParams(c)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		domains, err := swimDb.FetchDomainData(server.Db, page, size)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch cert updates"})
+			return
+		}
+
 		c.JSON(http.StatusOK, domains)
 	})
 
-	r.GET("/v1/get/:domain/subdomains", func(c *gin.Context) {
-		// get the domain name from the path parameters
+	// handler for fetching subdomains
+	r.GET("/v1/subdomains/:domain", func(c *gin.Context) {
 		domain := c.Param("domain")
-
-		// fetch the domain and its subdomains from the database
 		domainWithSubdomains, err := swimDb.FetchDomainWithSubdomains(server.Db, domain)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "An error occurred",
-				"error":   err.Error(),
-			})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch subdomains"})
 			return
 		}
 
-		// send the domain with its subdomains as the response
 		c.JSON(http.StatusOK, domainWithSubdomains)
 	})
 
@@ -62,30 +116,23 @@ func StartServer(db *sql.DB, wg *sync.WaitGroup) (*http.Server, chan struct{}) {
 		Addr:    "localhost:8080",
 		Handler: r,
 	}
-	// create a channel to signal when the server has started
-	started := make(chan struct{})
 
+	started := make(chan struct{})
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}
-		close(started) // close the channel to signal that the server has started
+		close(started)
 	}()
 
 	return srv, started
 }
 
-func GetDomainNamesHandler(s *swimModels.Server, c *gin.Context) {
-	// get the page number and size from the query parameters
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	size, _ := strconv.Atoi(c.DefaultQuery("size", "1000"))
-
-	// create a channel to receive the domain names
+// GetDomainNamesHandler handles requests to fetch domain names.
+func GetDomainNamesHandler(s *swimModels.Server, c *gin.Context, page int, size int) {
 	domainNames := make(chan []string)
-
-	// start a goroutine to fetch the domain names from the database
 	go func() {
 		defer close(domainNames)
 		if err := swimDb.FetchDomainNamesFromDatabase(s.Db, domainNames, page, size); err != nil {
@@ -93,18 +140,26 @@ func GetDomainNamesHandler(s *swimModels.Server, c *gin.Context) {
 		}
 	}()
 
-	// set the header to indicate that the response is a stream
 	c.Writer.Header().Set("Content-Type", "application/json")
 	c.Writer.WriteHeader(http.StatusOK)
-
-	// create a new JSON encoder that writes to the response body
 	encoder := json.NewEncoder(c.Writer)
-
-	// Iterate over the domain names and write them to the response
 	for chunk := range domainNames {
 		if err := encoder.Encode(chunk); err != nil {
 			log.Printf("Error encoding domain names: %v", err)
 			return
 		}
 	}
+}
+
+// parseQueryParams parses and validates query parameters.
+func parseQueryParams(c *gin.Context) (int, int, error) {
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		return 0, 0, err
+	}
+	size, err := strconv.Atoi(c.DefaultQuery("size", "1000"))
+	if err != nil {
+		return 0, 0, err
+	}
+	return page, size, nil
 }

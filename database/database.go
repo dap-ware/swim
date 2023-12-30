@@ -135,24 +135,19 @@ func insertBatch(tx *sql.Tx, batch []swimModels.DomainInfo) error {
 }
 
 func FetchDomainData(db *sql.DB, page, size int) ([]swimModels.DomainInfo, error) {
-	// calculate the offset
 	offset := (page - 1) * size
+	query := `SELECT id, domain, is_apex, parent_domain, not_before, not_after, serial_number, fingerprint, key_usage, extended_key_usage, subject_key_id, authority_key_id, authority_info, subject_alt_name, certificate_policies, wildcard FROM domains ORDER BY domain LIMIT ? OFFSET ?`
 
-	// prepare the SQL query
-	query := `SELECT * FROM domains ORDER BY domain LIMIT ? OFFSET ?`
-
-	// execute the query
 	rows, err := db.Query(query, size, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	// scan the result into a slice of Domain structs
 	var domains []swimModels.DomainInfo
 	for rows.Next() {
 		var domain swimModels.DomainInfo
-		err := rows.Scan(
+		if err := rows.Scan(
 			&domain.ID,
 			&domain.Domain,
 			&domain.IsApex,
@@ -169,18 +164,16 @@ func FetchDomainData(db *sql.DB, page, size int) ([]swimModels.DomainInfo, error
 			&domain.SubjectAltName,
 			&domain.CertificatePolicies,
 			&domain.Wildcard,
-		)
-		if err != nil {
+		); err != nil {
 			return nil, err
 		}
 
-		// convert not_before to a human-readable time
+		// convert Unix timestamp to human-readable time, if needed
 		domain.NotBeforeTime = time.Unix(domain.NotBefore, 0).Format(time.RFC3339)
 
 		domains = append(domains, domain)
 	}
 
-	// check for errors from iterating over rows.
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}

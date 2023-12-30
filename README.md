@@ -14,7 +14,7 @@ What is swim?
 
 - Swim is a Go application adeptly designed to interface with the Calidog CertStream service using websockets, offering real-time processing of SSL/TLS certificate transparency logs. This sophisticated interaction allows Swim to extract domain-related data from the logs with high efficiency. Once this data is processed, it's stored in a SQLite database, optimized for quick access and detailed analysis.
 
-- A significant feature of Swim is its implementation of a RESTful API using the Gin web framework. This API enhances Swim's functionality by making the stored data easily queryable. Users can execute targeted queries and access a wealt
+- A significant feature of Swim is its implementation of a RESTful API using the Gin web framework. This API enhances Swim's functionality by making the stored data easily queryable. Users can execute targeted queries and access a wealth
  of processed information, including comprehensive details on domain names, certificate event updates, and subdomain structures. This capability is crucial for security analysts and researchers who require immediate access to the latest data on certificate issuance and domain modifications.
 
 - The integration of Gin, known for its high performance and efficient memory usage, ensures that the API is not only powerful but also responsive and scalable. This makes Swim an invaluable tool in the cybersecurity and IT landscapes, particularly for those needing to monitor and analyze web security trends in real time.
@@ -129,17 +129,17 @@ Fetch Domain Specific Cert Update Event Data
 </h3>
 
 ---
-**Endpoint**: `GET /v1/get/domains`
+**Endpoint**: `GET /v1/get/cert-updates?page=1&size=100`
 - This endpoint retrieves certificate update event data for domains. The data includes details such as domain names, their apex status, parent domains, SSL certificate information, and more.
 
 #### **Query Parameters**
 - `page`: Page number for pagination (default: 1)
-- `size`: Number of domain records per page (default: 1000)
+- `size`: Number of cert-update records per page (default: 1000)
 
 #### **Example Request**
 - To fetch the first page of domain event data with 2 records per page:
 ```bash
-GET http://localhost:8080/v1/get/domains?page=1&size=2
+GET http://localhost:8080/v1/cert-updates?page=1&size=2
 ```
 #### **Example Response**
 ```json
@@ -184,7 +184,7 @@ Fetch Subdomains
 </h3>
 
 ---
-**Endpoint**: `GET /v1/get/:domain/subdomains`
+**Endpoint**: `GET /v1/get/subdomains/:domain`
 - This endpoint retrieves a list of subdomains for a given domain name. It is useful for identifying all subdomains associated with a specific apex domain, which can be crucial for domain management and security analysis.
 
 #### **Path Parameters**
@@ -193,7 +193,7 @@ Fetch Subdomains
 #### **Example Request**
 To fetch subdomains for the domain `dynamic-m.com`:
 ```bash
-GET http://localhost:8080/v1/get/dynamic-m.com/subdomains
+GET http://localhost:8080/v1/subdomains/dynamic-m.com
 ```
 
 #### **Example Response**

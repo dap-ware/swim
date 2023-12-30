@@ -24,6 +24,10 @@ type DomainInfo struct {
 	Wildcard            bool   `json:"wildcard"`
 }
 
+type Domain struct {
+	Name string `json:"domain"`
+}
+
 type DomainWithSubdomains struct {
 	Domain     string   `json:"domain"`
 	Subdomains []string `json:"subdomains"`
