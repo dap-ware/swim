@@ -49,7 +49,8 @@ Using Go Install
 <h3 align="center">
 Using git clone and building from source
 </h3>
-Alternatively, you can clone the repository and build Swim manually. This is a good option if you want to work with the source code or contribute to the project:
+
+- Alternatively, you can clone the repository and build Swim manually. This is a good option if you want to work with the source code or contribute to the project:
 
 1. Clone the repository:
 
@@ -67,6 +68,7 @@ Alternatively, you can clone the repository and build Swim manually. This is a g
 <h1 align="center">
 Usage
 </h1>
+
 Swim allows you to specify the SQLite database file and the batch size for processing using the `-db` and `-bs` flags, respectively. 
 
 - Default database file: `swim.db`
