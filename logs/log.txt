@@ -242,3 +242,4 @@
 2023/12/30 16:21:03 Error creating database file: open : no such file or directory
 2023/12/30 16:21:39 Error creating database file: open : no such file or directory
 2023/12/30 16:22:38 listen: listen tcp 127.0.0.1:8080: bind: address already in use
+2023/12/30 17:52:30 listen: tls: failed to parse private key

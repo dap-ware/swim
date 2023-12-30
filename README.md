@@ -8,6 +8,9 @@
 <p align="center">
   <img src="resources/logo.png" alt="Swim Logo" width="400">
 </p>
+
+---
+
 <h1 align="center">
 What is swim?
 </h1>
@@ -18,38 +21,33 @@ What is swim?
  of processed information, including comprehensive details on domain names, certificate event updates, and subdomain structures. This capability is crucial for security analysts and researchers who require immediate access to the latest data on certificate issuance and domain modifications.
 
 - The integration of Gin, known for its high performance and efficient memory usage, ensures that the API is not only powerful but also responsive and scalable. This makes Swim an invaluable tool in the cybersecurity and IT landscapes, particularly for those needing to monitor and analyze web security trends in real time.
-<h3 align="center">
+---
+<h1 align="center">
 Under Active Development
-</h3>
+</h1>
 
 - Swim is currently under active development, with plans to expand its features significantly. Upcoming enhancements include the addition of a web-based user interface (UI) to provide a more interactive and user-friendly experience. This web UI will make data visualization and analysis more accessible, further aiding users in their security research and monitoring tasks.
-
-
-
 ---
-
 <h1 align="center">
 <br>Installation
 </h1>
-<h3 align="center">
-Prerequisites
-</h3>
+
+### **Prerequisites**
+
 
 1. Go installed on system
 2. That's it...
 
-<h3 align="center">
-Using Go Install
-</h3>
+### **Using Go Install**
 
  - If you have Go installed and configured (with `GOPATH` set up), you can directly install Swim using the `go install` command:
 
     ```bash
     go install github.com/dap-ware/swim@latest
     ```
-<h3 align="center">
-Using git clone and building from source
-</h3>
+
+### **Using git clone and building from source**
+
 
 - Alternatively, you can clone the repository and build Swim manually. This is a good option if you want to work with the source code or contribute to the project:
 
@@ -71,19 +69,14 @@ Using git clone and building from source
 Usage
 </h1>
 
-Swim allows you to specify the SQLite database file and the batch size for processing using the `-db` and `-bs` flags, respectively. 
+### **Running Swim**
 
-- Default database file: `swim.db`
-- Default batch size: `1000`
 
-<h3 align="center">
-Running Swim
-</h3>
-
-To run Swim with custom settings:
+To run Swim with custom settings, modify config/config.yaml, then run:
 ```bash
-./swim -db your_database.db -bs 500
+./swim
 ```
+
 To display help information:
 ```bash
 ./swim -h
@@ -91,9 +84,8 @@ To display help information:
 <h1 align="center">
 API Reference
 </h1>
-<h3 align="center">
-Fetch Domain Names (Apex Domains)
-</h3>
+
+### **Fetch Domain Names (Apex Domains)**
 
 ---
 **Endpoint**: `GET /v1/domains`
@@ -124,9 +116,8 @@ GET http://localhost:8080/v1/domains?page=1&size=10
 ]
 ```
 ---
-<h3 align="center">
-Fetch Domain Specific Cert Update Event Data
-</h3>
+
+### **Fetch Domain Specific Cert Update Event Data**
 
 ---
 **Endpoint**: `GET /v1/get/cert-updates?page=1&size=100`
@@ -179,9 +170,9 @@ GET http://localhost:8080/v1/cert-updates?page=1&size=2
 ]
 ```
 ---
-<h3 align="center">
-Fetch Subdomains
-</h3>
+
+### **Fetch Subdomains**
+
 
 ---
 **Endpoint**: `GET /v1/get/subdomains/:domain`

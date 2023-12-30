@@ -1,3 +1,11 @@
 swim.db
 swim.db-journal
 swim
+
+#ignore cert directory
+cert
+cert.pem
+key.pem
+
+#ignore react frontend for now
+swim-frontend

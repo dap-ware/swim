@@ -112,6 +112,7 @@ func main() {
 	close(stopProcessing)
 	close(rawMessages)
 	close(domains)
+
 	wg.Wait()
 	fmt.Println("CertStream data processing completed.")
 }

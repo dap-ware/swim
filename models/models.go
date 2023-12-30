@@ -1,6 +1,21 @@
 package models
 
-import "database/sql"
+import (
+	"database/sql"
+)
+
+type Server struct {
+	Db *sql.DB
+}
+
+type Domain struct {
+	Name string `json:"domain"`
+}
+
+type DomainWithSubdomains struct {
+	Domain     string   `json:"domain"`
+	Subdomains []string `json:"subdomains"`
+}
 
 // DomainInfo represents the relevant data we want to extract from the stream
 type CertUpdateInfo struct {
@@ -22,17 +37,4 @@ type CertUpdateInfo struct {
 	SubjectAltName      string `json:"subject_alt_name"`
 	CertificatePolicies string `json:"certificate_policies"`
 	Wildcard            bool   `json:"wildcard"`
-}
-
-type Domain struct {
-	Name string `json:"domain"`
-}
-
-type DomainWithSubdomains struct {
-	Domain     string   `json:"domain"`
-	Subdomains []string `json:"subdomains"`
-}
-
-type Server struct {
-	Db *sql.DB
 }
