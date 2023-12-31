@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"sync"
 	"syscall"
 	"time"
@@ -25,6 +26,17 @@ import (
 var (
 	help = flag.Bool("h", false, "Display help")
 )
+
+// function to print SSL/TLS cert instructions if not found
+func printInstructions() {
+	fmt.Println("The 'cert' directory does not exist or is missing required files.")
+	fmt.Println("Please run the following commands:")
+	fmt.Println("mkdir -p cert")
+	fmt.Println("cd cert")
+	fmt.Println("Generate the certificates here. For example, using OpenSSL:")
+	fmt.Println("openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out cert.pem")
+	fmt.Println("Then, try running the program again.")
+}
 
 func main() {
 	// open a file for logging
@@ -58,14 +70,63 @@ func main() {
 		return
 	}
 
-	db, err := sql.Open("sqlite3", swimCfg.Database.FilePath)
-	if err != nil {
-		log.Fatalf("Error opening database: %v", err)
-	}
-	defer db.Close()
+	certDir := "cert"
+	certFile := filepath.Join(certDir, "cert.pem")
+	keyFile := filepath.Join(certDir, "key.pem")
 
-	if swimDb.SetupDatabase(db); err != nil {
-		log.Fatal(err)
+	// check if cert directory exists
+	if _, err := os.Stat(certDir); os.IsNotExist(err) {
+		printInstructions()
+		return
+	}
+
+	// check if cert.pem and key.pem exist
+	if _, err := os.Stat(certFile); os.IsNotExist(err) {
+		printInstructions()
+		return
+	}
+	if _, err := os.Stat(keyFile); os.IsNotExist(err) {
+		printInstructions()
+		return
+	}
+
+	// Ensure the directory for the database file exists
+	dbDir := filepath.Dir(swimCfg.Database.FilePath)
+	if _, err := os.Stat(dbDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(dbDir, 0755); err != nil {
+			log.Fatalf("Failed to create directory for database: %v", err)
+		}
+	}
+
+	var db *sql.DB
+
+	// Check if the database file exists
+	if _, err := os.Stat(swimCfg.Database.FilePath); os.IsNotExist(err) {
+		// Create a new file
+		file, err := os.Create(swimCfg.Database.FilePath)
+		if err != nil {
+			log.Fatalf("Failed to create database file: %v", err)
+		}
+		file.Close()
+
+		// Open the newly created database
+		db, err = sql.Open("sqlite3", swimCfg.Database.FilePath)
+		if err != nil {
+			log.Fatalf("Error opening new database: %v", err)
+		}
+		defer db.Close()
+
+		// Initialize the database
+		if err := swimDb.SetupDatabase(db); err != nil {
+			log.Fatalf("Failed to setup database: %v", err)
+		}
+	} else {
+		// Open the existing database
+		db, err = sql.Open("sqlite3", swimCfg.Database.FilePath)
+		if err != nil {
+			log.Fatalf("Error opening database: %v", err)
+		}
+		defer db.Close()
 	}
 
 	domains := make(chan []swimModels.CertUpdateInfo, 100) // buffered channel for domain info
