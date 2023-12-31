@@ -64,14 +64,6 @@
 >
 > 1. Go installed on system
 > 2. That's it...
->
-> ### **Using Go Install**
->
-> - If you have Go installed and configured (with `GOPATH` set up), you can directly install Swim using the `go install` command:
->
->     ```bash
->    go install github.com/dap-ware/swim@latest
->     ```
 > 
 > ### **Using git clone and building from source**
 >
