@@ -39,7 +39,16 @@ func printInstructions() {
 }
 
 func main() {
-	// open a file for logging
+	// Determine the directory for the log file
+	logDir := filepath.Dir("logs/log.txt")
+	if _, err := os.Stat(logDir); os.IsNotExist(err) {
+		// Create the directory if it does not exist
+		if err := os.MkdirAll(logDir, 0755); err != nil {
+			log.Fatalf("Failed to create directory for log file: %v", err)
+		}
+	}
+
+	// Now, open the log file
 	logFile, err := os.OpenFile("logs/log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
@@ -90,7 +99,7 @@ func main() {
 		return
 	}
 
-	// Ensure the directory for the database file exists
+	// ensure the directory for the database file exists
 	dbDir := filepath.Dir(swimCfg.Database.FilePath)
 	if _, err := os.Stat(dbDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(dbDir, 0755); err != nil {
@@ -100,28 +109,28 @@ func main() {
 
 	var db *sql.DB
 
-	// Check if the database file exists
+	// check if the database file exists
 	if _, err := os.Stat(swimCfg.Database.FilePath); os.IsNotExist(err) {
-		// Create a new file
+		// create a new file
 		file, err := os.Create(swimCfg.Database.FilePath)
 		if err != nil {
 			log.Fatalf("Failed to create database file: %v", err)
 		}
 		file.Close()
 
-		// Open the newly created database
+		// open the newly created database
 		db, err = sql.Open("sqlite3", swimCfg.Database.FilePath)
 		if err != nil {
 			log.Fatalf("Error opening new database: %v", err)
 		}
 		defer db.Close()
 
-		// Initialize the database
+		// initialize the database
 		if err := swimDb.SetupDatabase(db); err != nil {
 			log.Fatalf("Failed to setup database: %v", err)
 		}
 	} else {
-		// Open the existing database
+		// open the existing database
 		db, err = sql.Open("sqlite3", swimCfg.Database.FilePath)
 		if err != nil {
 			log.Fatalf("Error opening database: %v", err)
