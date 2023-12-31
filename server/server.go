@@ -7,6 +7,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"time"
@@ -71,7 +72,7 @@ func (rl *RateLimiter) RateLimit() gin.HandlerFunc {
 }
 
 // StartServer starts the Gin server in a separate goroutine.
-func StartServer(db *sql.DB, wg *sync.WaitGroup, swimCfg *swimConfig.Config) (*http.Server, chan struct{}) {
+func StartServer(db *sql.DB, wg *sync.WaitGroup, swimCfg *swimConfig.Config, baseDir string) (*http.Server, chan struct{}) {
 	// get new rate limiter
 	rateLimiter := NewRateLimiter(swimCfg.Rate.Limit, swimCfg.Rate.ResetTime)
 
@@ -131,12 +132,15 @@ func StartServer(db *sql.DB, wg *sync.WaitGroup, swimCfg *swimConfig.Config) (*h
 		},
 	}
 
+	certFile := filepath.Join(baseDir, "cert", "cert.pem")
+	keyFile := filepath.Join(baseDir, "cert", "key.pem")
+
 	started := make(chan struct{})
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		// Change ListenAndServe to ListenAndServeTLS and specify cert and key files
-		if err := srv.ListenAndServeTLS("cert/cert.pem", "cert/key.pem"); err != nil && err != http.ErrServerClosed {
+		// Use the full paths for the certificate and key
+		if err := srv.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}
 		close(started)

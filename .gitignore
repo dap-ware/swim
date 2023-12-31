@@ -9,3 +9,8 @@ key.pem
 
 #ignore react frontend for now
 swim-frontend
+
+#ignore the config
+config.json
+data
+logs

@@ -492,3 +492,5 @@
 2023/12/30 20:35:35 Failed to create database file: open data/swim.db: no such file or directory
 2023/12/30 20:35:39 Failed to create database file: open data/swim.db: no such file or directory
 2023/12/30 20:35:45 Failed to create database file: open data/swim.db: no such file or directory
+2023/12/30 21:26:29 Looking for config file at: /home/dap/projects/swim/config/config.json
+2023/12/30 21:26:29 Loading configuration from file

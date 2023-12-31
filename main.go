@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"flag"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -23,94 +23,89 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var (
-	help = flag.Bool("h", false, "Display help")
-)
-
-// function to print SSL/TLS cert instructions if not found
-func printInstructions() {
-	fmt.Println("The 'cert' directory does not exist or is missing required files.")
-	fmt.Println("Please run the following commands:")
-	fmt.Println("mkdir -p cert")
-	fmt.Println("cd cert")
-	fmt.Println("Generate the certificates here. For example, using OpenSSL:")
-	fmt.Println("openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out cert.pem")
-	fmt.Println("Then, try running the program again.")
-}
-
 func main() {
-	// Determine the directory for the log file
-	logDir := filepath.Dir("logs/log.txt")
-	if _, err := os.Stat(logDir); os.IsNotExist(err) {
-		// Create the directory if it does not exist
-		if err := os.MkdirAll(logDir, 0755); err != nil {
-			log.Fatalf("Failed to create directory for log file: %v", err)
+	// Determine base directory
+	baseDir := filepath.Join(os.Getenv("HOME"), "swim-framework")
+
+	// Create base directory if it doesn't exist
+	if err := os.MkdirAll(baseDir, 0755); err != nil {
+		log.Fatalf("Failed to create base directory: %v", err)
+	}
+
+	// Define and create subdirectories
+	logDir := filepath.Join(baseDir, "logs")
+	configDir := filepath.Join(baseDir, "config")
+	dataDir := filepath.Join(baseDir, "data")
+
+	for _, dir := range []string{logDir, configDir, dataDir} {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			log.Fatalf("Failed to create directory %s: %v", dir, err)
 		}
 	}
 
-	// Now, open the log file
-	logFile, err := os.OpenFile("logs/log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	// Log file setup
+	logFilePath := filepath.Join(logDir, "log.txt")
+	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
 	}
 	defer logFile.Close()
 
-	// create a multi-writer that writes to both the log file and the terminal
 	multi := io.MultiWriter(logFile, os.Stdout)
-
-	// set the log output to the multi-writer
 	log.SetOutput(multi)
 
-	swimCfg, err := swimConfig.LoadConfig("config/config.yaml")
-	if err != nil {
-		log.Fatalf("Failed to load config: %s", err)
+	// Configuration file setup
+	configPath := filepath.Join(configDir, "config.json")
+	var swimCfg *swimConfig.Config
+
+	// Check if the config file exists
+	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
+		log.Println("Config file not found, using default configuration")
+		swimCfg = swimConfig.GetDefaultConfig()
+		// Adjust the database file path to be within the dataDir
+		swimCfg.Database.FilePath = filepath.Join(dataDir, "swim.db")
+	} else if err != nil {
+		log.Fatalf("Error checking config file: %v", err)
+	} else {
+		log.Println("Loading configuration from file")
+		swimCfg, err = swimConfig.LoadConfig(configPath)
+		if err != nil {
+			log.Fatalf("Failed to load config: %v", err)
+		}
+		// Adjust the database file path if necessary
+		if !filepath.IsAbs(swimCfg.Database.FilePath) {
+			swimCfg.Database.FilePath = filepath.Join(dataDir, swimCfg.Database.FilePath)
+		}
 	}
 
-	// Print the loaded configuration for debugging
-	fmt.Printf("Loaded configuration: %+v\n", swimCfg)
-
-	flag.Parse()
-
-	if *help {
-		fmt.Println("CertStream Data Processor")
-		fmt.Println("\nThis program connects to the CertStream service, processes incoming domain data, and stores it in a SQLite database.")
-		fmt.Println("\nUsage information and program description")
-		flag.PrintDefaults()
-		return
-	}
-
-	certDir := "cert"
+	// Define the directory and paths for SSL/TLS certificates
+	certDir := filepath.Join(baseDir, "cert")
 	certFile := filepath.Join(certDir, "cert.pem")
 	keyFile := filepath.Join(certDir, "key.pem")
 
-	// check if cert directory exists
-	if _, err := os.Stat(certDir); os.IsNotExist(err) {
-		printInstructions()
-		return
+	// Check if cert directory exists, and create it if not
+	if err := os.MkdirAll(certDir, 0755); err != nil {
+		log.Fatalf("Failed to create cert directory: %v", err)
 	}
 
-	// check if cert.pem and key.pem exist
+	// Check if cert.pem and key.pem exist
 	if _, err := os.Stat(certFile); os.IsNotExist(err) {
-		printInstructions()
-		return
-	}
-	if _, err := os.Stat(keyFile); os.IsNotExist(err) {
-		printInstructions()
-		return
+		printInstructions(baseDir)
+		return // or generate the certificates if you can automate this
 	}
 
-	// ensure the directory for the database file exists
-	dbDir := filepath.Dir(swimCfg.Database.FilePath)
-	if _, err := os.Stat(dbDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(dbDir, 0755); err != nil {
-			log.Fatalf("Failed to create directory for database: %v", err)
-		}
+	if _, err := os.Stat(keyFile); os.IsNotExist(err) {
+		printInstructions(baseDir)
+		return // or generate the certificates if you can automate this
 	}
+
+	// Database setup
+	dbPath := swimCfg.Database.FilePath
 
 	var db *sql.DB
 
 	// check if the database file exists
-	if _, err := os.Stat(swimCfg.Database.FilePath); os.IsNotExist(err) {
+	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
 		// create a new file
 		file, err := os.Create(swimCfg.Database.FilePath)
 		if err != nil {
@@ -157,7 +152,7 @@ func main() {
 	go swimStream.ListenForEvents(rawMessages, stopProcessing, &wg)
 
 	// server gets started in go routine in swimServer.StartServer
-	srv, started := swimServer.StartServer(db, &wg, swimCfg) // start the Gin server (with a rate limiter of 100 requests per hour. See config/config.yaml for the
+	srv, started := swimServer.StartServer(db, &wg, swimCfg, baseDir) // start the Gin server (with a rate limiter of 100 requests per hour. See config/config.yaml for the
 	// wait for the server to start
 	go func() {
 		<-started // send a message to the channel when the server is started
@@ -185,4 +180,18 @@ func main() {
 
 	wg.Wait()
 	fmt.Println("CertStream data processing completed.")
+}
+
+// printInstructions provides instructions for generating SSL/TLS certificates
+func printInstructions(baseDir string) {
+	certDir := filepath.Join(baseDir, "cert")
+	certFile := filepath.Join(certDir, "cert.pem")
+	keyFile := filepath.Join(certDir, "key.pem")
+
+	fmt.Println("The SSL/TLS certificates were not found.")
+	fmt.Println("Please generate the certificates using OpenSSL with the following commands:")
+	fmt.Printf("mkdir -p %s\n", certDir)
+	fmt.Printf("openssl req -newkey rsa:2048 -nodes -keyout %s -x509 -days 365 -out %s\n", keyFile, certFile)
+	fmt.Println("This will create the necessary certificates in the 'cert' directory of the 'swim-framework'.")
+	fmt.Println("After generating the certificates, try running the program again.")
 }
